@@ -3,4 +3,5 @@ IIJMachinistClient	KEYWORD1
 getMachinistUri	KEYWORD2
 setMachinistUri	KEYWORD2
 setDebugSerial	KEYWORD2
+init	KEYWORD2
 post	KEYWORD2
