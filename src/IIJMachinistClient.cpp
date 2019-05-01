@@ -9,6 +9,8 @@
 #include "IIJMachinistClient.h"
 #include "cert.h"
 
+#define JST (3600 * 9)
+
 static String esc(const String &src)
 {
     String dest(src);
@@ -53,22 +55,27 @@ void IIJMachinistClient::init(void)
 
 void IIJMachinistClient::setClock(void)
 {
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+    configTime(JST, 0,
+               "ntp.nict.jp",
+               "ntp.jst.mfeed.ad.jp");
 
-    debug(F("Waiting for NTP time sync: "));
+    debug("Waiting for NTP time sync: ");
     time_t nowSecs = time(nullptr);
     while (nowSecs < 8 * 3600 * 2)
     {
-        delay(500);
-        debug(F("."));
+        delay(1000);
+        debug(".");
         yield();
         nowSecs = time(nullptr);
     }
 
-    Serial.println();
-    struct tm timeinfo;
-    gmtime_r(&nowSecs, &timeinfo);
-    debug(String("Current time: ") + String(asctime(&timeinfo)));
+    struct tm timeInfo;
+    char s[20];
+    getLocalTime(&timeInfo);
+    sprintf(s, "%04d/%02d/%02d %02d:%02d:%02d",
+            timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday,
+            timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+    debug(String("Current time: ") + String(s));
 }
 
 String IIJMachinistClient::getMachinistUri(void)
