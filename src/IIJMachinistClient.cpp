@@ -70,12 +70,8 @@ void IIJMachinistClient::setClock(void)
     }
 
     struct tm timeInfo;
-    char s[20];
     getLocalTime(&timeInfo);
-    sprintf(s, "%04d/%02d/%02d %02d:%02d:%02d",
-            timeInfo.tm_year + 1900, timeInfo.tm_mon + 1, timeInfo.tm_mday,
-            timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-    debug(String("Current time: ") + String(s));
+    debug("Current time: " + String(asctime(&timeInfo)));
 }
 
 String IIJMachinistClient::getMachinistUri(void)
