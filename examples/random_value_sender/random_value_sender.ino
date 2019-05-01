@@ -2,14 +2,15 @@
 #include <WiFiMulti.h>
 #include "IIJMachinistClient.h"
 
-#define WIFI_ID   "YOUR WIFI SSID HERE"
+#define WIFI_ID "YOUR WIFI SSID HERE"
 #define WIFI_PASS "YOUR WIFI PASSWORD HERE"
 #define MACHINIST_API_KEY "YOUR Machinist API KEY here"
 
-WiFiMulti wiFiMulti;  
+WiFiMulti wiFiMulti;
 IIJMachinistClient c(MACHINIST_API_KEY);
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
 
   WiFi.mode(WIFI_STA);
@@ -17,7 +18,8 @@ void setup() {
 
   // wait for WiFi connection
   Serial.print("Waiting for WiFi to connect...");
-  while ((wiFiMulti.run() != WL_CONNECTED)) {
+  while ((wiFiMulti.run() != WL_CONNECTED))
+  {
     Serial.print(".");
   }
   Serial.println(" connected");
@@ -27,15 +29,19 @@ void setup() {
   c.init();
 }
 
-void loop() {
-  float value = (float)random(10000)/100.;
+void loop()
+{
+  float value = (float)random(10000) / 100.;
 
   //あらかじめ Machinist の UI から "test" という名称の Agent を作成しておきます。
   int s = c.post("test", "NAME\\SPACE", "NAME", value, "KEY", "VALUE");
-  if(s==200) {
+  if (s == 200)
+  {
     Serial.println("OK");
-  } else
+  }
+  else
+  {
     Serial.println("NG status=" + String(s));
   }
-  delay(60*1000);
+  delay(60 * 1000);
 }
