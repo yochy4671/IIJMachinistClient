@@ -1,6 +1,6 @@
 
-#ifndef IIJMachinistClient_cert_h_
-#define IIJMachinistClient_cert_h_
+#ifndef IIJMachinistClient_cert_for_esp32_h_
+#define IIJMachinistClient_cert_for_esp32_h_
 
 // Machinistのルート証明書 2028/01/28まで有効
 #define ROOT_CERT                                                        \

@@ -1,9 +1,9 @@
 # IIJMachinistClient
-ESP32(ESP-WROOM-32) Arduino IDE用  
+ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02) Arduino IDE用  
 IIJのMachinistにデータ送信するためのライブラリです。
 
 # version
-version 0.1
+version 0.2
 
 # ライセンス  
 License MIT
@@ -15,8 +15,7 @@ License MIT
 # 注意事項
 
 * このライブラリは *IIJ非公式* です。このライブラリに関する問い合わせはIIJに行わないでください。
-* ESP32(ESP-WROOM-32)でのみ動作確認しています。
-* ESP8266(ESP-WROOM-02)では動きません（時間があったらあとで対応させます）
+* ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02)でのみ動作確認しています。
 
 # 事前に作業しておくこと
 
@@ -101,5 +100,6 @@ License MIT
 
 # history
 * ver. 0.1: 初回公開
+* ver. 0.2: ESP8266(ESP-WROOM-02)に対応
 
 # メモ

@@ -1,7 +1,7 @@
 /*
-    IIJMachinistClient.h - IIJ Machinist Client for ESP32
+    IIJMachinistClient.h - IIJ Machinist Client for ESP32/ESP8266
     development by nara256  https://github.com/nara256/
-    version 0.1
+    version 0.2
 
     License MIT
 */
@@ -9,8 +9,14 @@
 #define IIJMachinistClient_h_
 
 #include "Arduino.h"
-#include <HTTPClient.h>
-#include <WiFiClientSecure.h>
+#ifdef ARDUINO_ARCH_ESP32
+  #include <HTTPClient.h>
+  #include <WiFiClientSecure.h>
+#else
+  #include <ESP8266HTTPClient.h>
+  #include <WiFiClientSecureBearSSL.h>
+#endif
+
 
 #define DEFAULT_MACHINIST_URI "https://gw.machinist.iij.jp/endpoint"
 

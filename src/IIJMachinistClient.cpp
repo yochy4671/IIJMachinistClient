@@ -1,13 +1,18 @@
 /*
-    IIJMachinistClient.cpp - IIJ Machinist Client for ESP32
+    IIJMachinistClient.cpp - IIJ Machinist Client for ESP32/ESP8266
     development by nara256  https://github.com/nara256/
-    version 0.1
+    version 0.2
 
     License MIT
 */
 
+#include <time.h>
 #include "IIJMachinistClient.h"
-#include "cert.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "cert_for_esp32.h"
+#else
+#include "cert_for_esp8266.h"
+#endif
 
 #define JST (3600 * 9)
 
@@ -69,9 +74,8 @@ void IIJMachinistClient::setClock(void)
         nowSecs = time(nullptr);
     }
 
-    struct tm timeInfo;
-    getLocalTime(&timeInfo);
-    debug("Current time: " + String(asctime(&timeInfo)));
+    time_t t_now = time(NULL);
+    debug("Current time: " + String(ctime(&t_now)));
 }
 
 String IIJMachinistClient::getMachinistUri(void)
@@ -143,10 +147,17 @@ int IIJMachinistClient::post(
 int IIJMachinistClient::post(const String &json)
 {
     int status = -1;
+#ifdef ARDUINO_ARCH_ESP32
     WiFiClientSecure *client = new WiFiClientSecure;
     if (client)
     {
         client->setCACert(ROOT_CERT);
+#else
+    std::unique_ptr<BearSSL::WiFiClientSecure> client(new BearSSL::WiFiClientSecure);
+    if (client)
+    {
+        client->setFingerprint(FINGERPRINT);
+#endif
         {
             // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
             HTTPClient https;
@@ -165,7 +176,9 @@ int IIJMachinistClient::post(const String &json)
                 debug("connection failed!");
             }
         }
+#ifdef ARDUINO_ARCH_ESP32
         delete client;
+#endif
     }
     return status;
 }
