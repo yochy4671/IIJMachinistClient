@@ -25,5 +25,4 @@
     "Mx86OyXShkDOOyyGeMlhLxS67ttVb9+E7gUJTb0o2HLO02JQZR7rkpeDMdmztcpH\n" \
     "WD9f\n"                                                             \
     "-----END CERTIFICATE-----\n"
-
 #endif
