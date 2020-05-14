@@ -1,7 +1,7 @@
 /*
-    IIJMachinistClient.h - IIJ Machinist Client for ESP32/ESP8266
+    IIJMachinistClient.h - IIJ Machinist Client for ESP32/ESP8266/SpresenseLTE
     development by nara256  https://github.com/nara256/
-    version 0.2
+    version 0.3
 
     License MIT
 */
@@ -9,21 +9,33 @@
 #define IIJMachinistClient_h_
 
 #include "Arduino.h"
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32)
   #include <HTTPClient.h>
   #include <WiFiClientSecure.h>
-#else
+#elif defined(ARDUINO_ARCH_ESP8266)
   #include <ESP8266HTTPClient.h>
   #include <WiFiClientSecureBearSSL.h>
+#elif defined(ARDUINO_ARCH_SPRESENSE)
+  #include <LTEUDP.h>
+  #include <LTETLSClient.h>
+  #include <RTC.h>
+  #include <NTPClient.h>
+  #include <ArduinoHttpClient.h>
 #endif
 
-
-#define DEFAULT_MACHINIST_URI "https://gw.machinist.iij.jp/endpoint"
+#define DEFAULT_MACHINIST_PROTOCOL  "https"
+#define DEFAULT_MACHINIST_HOST      "gw.machinist.iij.jp"
+#define DEFAULT_MACHINIST_PORT      443
+#define DEFAULT_MACHINIST_PATH      "/endpoint"
 
 class IIJMachinistClient
 {
 private:
-    String m_machinistUri = String(DEFAULT_MACHINIST_URI);
+    String m_machinistProtocol = String(DEFAULT_MACHINIST_PROTOCOL);
+    String m_machinistHost = String(DEFAULT_MACHINIST_HOST);
+    int m_machinistPort = DEFAULT_MACHINIST_PORT;
+    String m_machinistPath = String(DEFAULT_MACHINIST_PATH);
+
     String m_apiKey;
     Stream *m_debug = NULL;
 
@@ -35,14 +47,12 @@ private:
         const String &tagName, const String &tagValue, const long timestamp);
 
     void setClock(void);
+    String getMachinistUri(void);
 
 public:
     IIJMachinistClient(String apiKey);
     IIJMachinistClient(char *apiKey);
     virtual ~IIJMachinistClient();
-    String getMachinistUri(void);
-    void setMachinistUri(String &uri);
-    void setMachinistUri(char *uri);
     void setDebugSerial(Stream &debug);
 
     void init(void);

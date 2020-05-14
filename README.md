@@ -1,9 +1,9 @@
 # IIJMachinistClient
-ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02) Arduino IDE用  
+ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02) / Spresense+LTE拡張ボード Arduino IDE用  
 IIJのMachinistにデータ送信するためのライブラリです。
 
 # version
-version 0.2
+version 0.3
 
 # ライセンス  
 License MIT
@@ -15,7 +15,11 @@ License MIT
 # 注意事項
 
 * このライブラリは *IIJ非公式* です。このライブラリに関する問い合わせはIIJに行わないでください。
-* ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02)でのみ動作確認しています。
+* ESP32(ESP-WROOM-32) / ESP8266(ESP-WROOM-02) / Spresense+LTE拡張ボード でのみ動作確認しています。
+
+# Spresenseを利用する場合の事前準備
+
+* Spresenseを使用する場合は、ライブラリマネージャより "NTPClient" と "ArduinoHttpClient" をインストールしておく必要があります。
 
 # 事前に作業しておくこと
 
@@ -41,8 +45,8 @@ License MIT
 ## public関数
 
 * void init(void)  
-  初期化処理 ntpより時刻を取得して ESP32 の内蔵時計にセットします。  
-  WiFi接続後、begin関数内で1回だけ実行してください。
+  初期化処理 ntpより時刻を取得して内蔵時計にセットします。  
+  WiFi or LTE接続後、begin関数内で1回だけ実行してください。
 
 * int post(const String &json)  
   MachinistにJSONをPOSTします。
@@ -101,5 +105,4 @@ License MIT
 # history
 * ver. 0.1: 初回公開
 * ver. 0.2: ESP8266(ESP-WROOM-02)に対応
-
-# メモ
+* ver. 0.3: Spresense+LTE拡張ボード に対応
