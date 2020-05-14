@@ -1,20 +1,35 @@
 /*
-    IIJMachinistClient.cpp - IIJ Machinist Client for ESP32/ESP8266
+    IIJMachinistClient.cpp - IIJ Machinist Client for ESP32/ESP8266/SpresenseLTE
     development by nara256  https://github.com/nara256/
-    version 0.2
+    version 0.3
 
     License MIT
 */
 
 #include <time.h>
 #include "IIJMachinistClient.h"
-#ifdef ARDUINO_ARCH_ESP32
-#include "cert_for_esp32.h"
-#else
-#include "cert_for_esp8266.h"
+#if defined(ARDUINO_ARCH_ESP32)
+  #include "cert_for_esp32.h"
+#elif defined(ARDUINO_ARCH_ESP8266)
+  #include "cert_for_esp8266.h"
+#elif defined(ARDUINO_ARCH_SPRESENSE)
+  #include "cert_for_spresense.h"
 #endif
 
 #define JST (3600 * 9)
+#define NTP_SERVER_HOST "ntp.nict.jp"
+
+#define HEADER_CONTENT_TYPE         "Content-Type"
+#define HEADER_CONTENT_TYPE_VALUE   "application/json;charset=UTF-8"
+#define HEADER_CONTENT_LENGTH       "Content-Length"
+#define HEADER_AUTH                 "Authorization"
+#define HEADER_AUTH_PREFIX          "Bearer "
+
+#ifdef ARDUINO_ARCH_SPRESENSE
+  LTEUDP ntpUDP;
+  NTPClient timeClient(ntpUDP, NTP_SERVER_HOST, JST);
+  LTETLSClient tlsClient;
+#endif
 
 static String esc(const String &src)
 {
@@ -60,9 +75,21 @@ void IIJMachinistClient::init(void)
 
 void IIJMachinistClient::setClock(void)
 {
-    configTime(JST, 0,
-               "ntp.nict.jp",
-               "ntp.jst.mfeed.ad.jp");
+#ifdef ARDUINO_ARCH_SPRESENSE
+    RTC.begin();
+    timeClient.begin();
+    timeClient.update();
+
+    RtcTime rtc(timeClient.getEpochTime());
+    RTC.setTime(rtc);
+
+    char buff[32];
+    sprintf(buff, "%04d/%02d/%02d %02d:%02d:%02d",
+         rtc.year(), rtc.month(), rtc.day(),
+         rtc.hour(), rtc.minute(), rtc.second());
+    debug("Current time: " + String(buff));
+#else
+    configTime(JST, 0, NTP_SERVER_HOST);
 
     debug("Waiting for NTP time sync: ");
     time_t nowSecs = time(nullptr);
@@ -76,21 +103,15 @@ void IIJMachinistClient::setClock(void)
 
     time_t t_now = time(NULL);
     debug("Current time: " + String(ctime(&t_now)));
+#endif
 }
 
 String IIJMachinistClient::getMachinistUri(void)
 {
-    return m_machinistUri;
-}
-
-void IIJMachinistClient::setMachinistUri(char *uri)
-{
-    String u(uri);
-    setMachinistUri(u);
-}
-void IIJMachinistClient::setMachinistUri(String &uri)
-{
-    m_machinistUri = uri;
+    return m_machinistProtocol + "://" 
+            + m_machinistHost 
+            + ":" + String(m_machinistPort) 
+            + m_machinistPath;
 }
 
 void IIJMachinistClient::setDebugSerial(Stream &debug)
@@ -147,7 +168,8 @@ int IIJMachinistClient::post(
 int IIJMachinistClient::post(const String &json)
 {
     int status = -1;
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP32)
     WiFiClientSecure *client = new WiFiClientSecure;
     if (client)
     {
@@ -161,11 +183,11 @@ int IIJMachinistClient::post(const String &json)
         {
             // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
             HTTPClient https;
-            debug("[HTTPS] begin...  URI=" + m_machinistUri);
-            if (https.begin(*client, m_machinistUri))
+            debug("[HTTPS] begin...  URI=" + getMachinistUri());
+            if (https.begin(*client, getMachinistUri()))
             {
-                https.addHeader(String("Content-type"), String("application/json;charset=UTF-8"));
-                https.addHeader(String("Authorization"), String("Bearer ") + m_apiKey);
+                https.addHeader(String(HEADER_CONTENT_TYPE), String(HEADER_CONTENT_TYPE_VALUE));
+                https.addHeader(String(HEADER_AUTH), String(HEADER_AUTH_PREFIX) + m_apiKey);
                 debug("POST " + json);
                 status = https.POST(json);
                 debug("status=" + String(status));
@@ -180,6 +202,23 @@ int IIJMachinistClient::post(const String &json)
         delete client;
 #endif
     }
+#endif // defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+
+#if defined(ARDUINO_ARCH_SPRESENSE)
+    tlsClient.setCACert(ROOT_CERT);
+    HttpClient client = HttpClient(tlsClient, m_machinistHost, m_machinistPort);
+    client.beginRequest();
+    client.post(m_machinistPath);
+    client.sendHeader(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_VALUE);
+    client.sendHeader(HEADER_CONTENT_LENGTH, json.length());
+    client.sendHeader(String(HEADER_AUTH), String(HEADER_AUTH_PREFIX) + m_apiKey);
+    client.beginBody();
+    debug("POST " + json);
+    client.print(json);
+    client.endRequest();
+    status = client.responseStatusCode();
+    debug("status=" + String(status));
+#endif //defined(ARDUINO_ARCH_SPRESENSE)
     return status;
 }
 
